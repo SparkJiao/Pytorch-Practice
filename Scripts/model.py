@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from utils.nn import Linear, LSTM
+
 
 class BiDAF(nn.Module):
     def __init__(self, args, pretrained):
@@ -29,35 +31,35 @@ class BiDAF(nn.Module):
                                   nn.Sigmoid()))
 
         # 3. Contextual Embedding Layer
-        self.context_LSTM = nn.LSTM(input_size=args.hidden_size * 2,
-                                    hidden_size=args.hidden_size,
-                                    bidirectional=True,
-                                    batch_first=True,
-                                    dropout=args.dropout)
+        self.context_LSTM = LSTM(input_size=args.hidden_size * 2,
+                                 hidden_size=args.hidden_size,
+                                 bidirectional=True,
+                                 batch_first=True,
+                                 dropout=args.dropout)
 
         # 4. Attention Flow Layer
-        self.att_weight_c = nn.Linear(args.hidden_size * 2, 1)
-        self.att_weight_q = nn.Linear(args.hidden_size * 2, 1)
-        self.att_weight_cq = nn.Linear(args.hidden_size * 2, 1)
+        self.att_weight_c = Linear(args.hidden_size * 2, 1)
+        self.att_weight_q = Linear(args.hidden_size * 2, 1)
+        self.att_weight_cq = Linear(args.hidden_size * 2, 1)
 
         # 5. Modeling Layer
-        self.modeling_LSTM1 = nn.LSTM(input_size=args.hidden_size * 8,
-                                      hidden_size=args.hidden_size,
-                                      bidirectional=True,
-                                      batch_first=True,
-                                      dropout=args.dropout)
-
-        # 6. Output Layer
-        self.p1_weight_g = nn.Linear(args.hidden_size * 8, 1, dropout=args.dropout)
-        self.p1_weight_m = nn.Linear(args.hidden_size * 2, 1, dropout=args.dropout)
-        self.p2_weight_g = nn.Linear(args.hidden_size * 8, 1, dropout=args.dropout)
-        self.p2_weight_m = nn.Linear(args.hidden_size * 2, 1, dropout=args.dropout)
-
-        self.output_LSTM = nn.LSTM(input_size=args.hidden_size * 2,
+        self.modeling_LSTM1 = LSTM(input_size=args.hidden_size * 8,
                                    hidden_size=args.hidden_size,
                                    bidirectional=True,
                                    batch_first=True,
                                    dropout=args.dropout)
+
+        # 6. Output Layer
+        self.p1_weight_g = Linear(args.hidden_size * 8, 1, dropout=args.dropout)
+        self.p1_weight_m = Linear(args.hidden_size * 2, 1, dropout=args.dropout)
+        self.p2_weight_g = Linear(args.hidden_size * 8, 1, dropout=args.dropout)
+        self.p2_weight_m = Linear(args.hidden_size * 2, 1, dropout=args.dropout)
+
+        self.output_LSTM = LSTM(input_size=args.hidden_size * 2,
+                                hidden_size=args.hidden_size,
+                                bidirectional=True,
+                                batch_first=True,
+                                dropout=args.dropout)
 
         self.dropout = nn.Dropout(p=args.dropout)
 
